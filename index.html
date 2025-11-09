@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Teste da API</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      max-width: 800px;
+      margin: 50px auto;
+      padding: 20px;
+      background: #1a1a1a;
+      color: #fff;
+    }
+    .box {
+      background: #2a2a2a;
+      padding: 20px;
+      border-radius: 10px;
+      margin-bottom: 20px;
+    }
+    input, button {
+      padding: 10px;
+      margin: 5px;
+      font-size: 14px;
+      border-radius: 5px;
+      border: 1px solid #444;
+    }
+    button {
+      background: #06b6d4;
+      color: #000;
+      font-weight: bold;
+      cursor: pointer;
+      border: none;
+    }
+    button:hover {
+      background: #0891b2;
+    }
+    #result {
+      background: #000;
+      padding: 15px;
+      border-radius: 5px;
+      margin-top: 10px;
+      white-space: pre-wrap;
+      font-family: monospace;
+      font-size: 12px;
+      max-height: 400px;
+      overflow-y: auto;
+    }
+    .success { color: #10b981; }
+    .error { color: #ef4444; }
+    .info { color: #06b6d4; }
+  </style>
+</head>
+<body>
+  <h1>🧪 Teste da API do Sistema de Links</h1>
+  
+  <div class="box">
+    <h3>1️⃣ Configurar URL da API</h3>
+    <input 
+      type="text" 
+      id="apiUrl" 
+      placeholder="Cole a URL do Apps Script aqui"
+      style="width: 100%; max-width: 600px;"
+      value="https://script.google.com/macros/s/AKfycbxMc1mc9EZD-bB1aGJ8XBpAg0czHdM5WYqwuQrk3aWQhOlvam5sSQAMWc_6mq4aBSHbpA/exec"
+    >
+  </div>
+
+  <div class="box">
+    <h3>2️⃣ Testar Conexão</h3>
+    <button onclick="testarConexao()">🔌 Testar GET (Listar Links)</button>
+    <button onclick="testarAuth()">🔐 Testar POST (Autenticação)</button>
+  </div>
+
+  <div class="box">
+    <h3>3️⃣ Autenticação</h3>
+    <input type="password" id="senha" placeholder="Senha admin" value="Nanl250612#">
+    <button onclick="fazerLogin()">🔐 Login</button>
+  </div>
+
+  <div class="box">
+    <h3>4️⃣ Adicionar Link (precisa estar logado)</h3>
+    <input type="text" id="titulo" placeholder="Título" style="width: 300px;">
+    <input type="text" id="url" placeholder="URL" style="width: 300px;" value="https://www.google.com">
+    <button onclick="adicionarLink()">➕ Adicionar</button>
+  </div>
+
+  <div class="box">
+    <h3>📊 Resultado:</h3>
+    <div id="result" class="info">Aguardando teste...</div>
+  </div>
+
+  <script>
+    function log(msg, type = 'info') {
+      const result = document.getElementById('result');
+      const timestamp = new Date().toLocaleTimeString();
+      result.innerHTML += `<span class="${type}">[${timestamp}] ${msg}</span>\n`;
+      result.scrollTop = result.scrollHeight;
+    }
+
+    async function testarConexao() {
+      const apiUrl = document.getElementById('apiUrl').value.trim();
+      
+      if (!apiUrl) {
+        log('❌ Por favor, configure a URL da API primeiro!', 'error');
+        return;
+      }
+
+      log('🔄 Testando conexão GET...', 'info');
+      log('📍 URL: ' + apiUrl + '?action=getLinks', 'info');
+
+      try {
+        const response = await fetch(apiUrl + '?action=getLinks');
+        log('✅ Resposta recebida! Status: ' + response.status, 'success');
+        
+        const data = await response.json();
+        log('📦 Dados: ' + JSON.stringify(data, null, 2), 'success');
+        
+        if (data.ok) {
+          log('🎉 API FUNCIONANDO! Total de links: ' + (data.links?.length || 0), 'success');
+        } else {
+          log('⚠️ API respondeu com erro: ' + data.error, 'error');
+        }
+      } catch (error) {
+        log('❌ ERRO: ' + error.message, 'error');
+        log('💡 Possíveis causas:', 'error');
+        log('   1. URL da API incorreta', 'error');
+        log('   2. Apps Script não foi implantado', 'error');
+        log('   3. CORS bloqueado (precisa hospedar online)', 'error');
+        log('   4. Implantação não está como "Qualquer pessoa"', 'error');
+      }
+    }
+
+    async function testarAuth() {
+      const apiUrl = document.getElementById('apiUrl').value.trim();
+      
+      if (!apiUrl) {
+        log('❌ Configure a URL da API primeiro!', 'error');
+        return;
+      }
+
+      log('🔄 Testando requisição POST...', 'info');
+
+      try {
+        const response = await fetch(apiUrl, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ action: 'auth', password: 'teste123' })
+        });
+        
+        log('✅ POST funcionando! Status: ' + response.status, 'success');
+        
+        const data = await response.json();
+        log('📦 Resposta: ' + JSON.stringify(data, null, 2), 'success');
+        
+      } catch (error) {
+        log('❌ ERRO no POST: ' + error.message, 'error');
+      }
+    }
+
+    async function fazerLogin() {
+      const apiUrl = document.getElementById('apiUrl').value.trim();
+      const senha = document.getElementById('senha').value;
+
+      if (!apiUrl || !senha) {
+        log('❌ Preencha URL e senha!', 'error');
+        return;
+      }
+
+      log('🔐 Tentando fazer login...', 'info');
+
+      try {
+        const response = await fetch(apiUrl, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ action: 'auth', password: senha })
+        });
+
+        const data = await response.json();
+        log('📦 Resposta: ' + JSON.stringify(data, null, 2), data.ok ? 'success' : 'error');
+
+        if (data.ok) {
+          log('🎉 LOGIN COM SUCESSO!', 'success');
+        } else {
+          log('❌ Senha incorreta ou erro: ' + data.error, 'error');
+        }
+      } catch (error) {
+        log('❌ ERRO: ' + error.message, 'error');
+      }
+    }
+
+    async function adicionarLink() {
+      const apiUrl = document.getElementById('apiUrl').value.trim();
+      const titulo = document.getElementById('titulo').value.trim();
+      const url = document.getElementById('url').value.trim();
+
+      if (!apiUrl || !titulo || !url) {
+        log('❌ Preencha todos os campos!', 'error');
+        return;
+      }
+
+      log('➕ Adicionando link...', 'info');
+
+      try {
+        const response = await fetch(apiUrl, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ 
+            action: 'addLink',
+            title: titulo,
+            url: url,
+            desc: 'Teste'
+          })
+        });
+
+        const data = await response.json();
+        log('📦 Resposta: ' + JSON.stringify(data, null, 2), data.ok ? 'success' : 'error');
+
+        if (data.ok) {
+          log('🎉 LINK ADICIONADO COM SUCESSO!', 'success');
+          document.getElementById('titulo').value = '';
+          
+          // Atualizar lista
+          setTimeout(testarConexao, 1000);
+        }
+      } catch (error) {
+        log('❌ ERRO: ' + error.message, 'error');
+      }
+    }
+
+    // Auto-teste ao carregar
+    window.addEventListener('load', () => {
+      log('🚀 Sistema de Teste Carregado!', 'success');
+      log('📝 Instruções:', 'info');
+      log('   1. Verifique se a URL da API está correta', 'info');
+      log('   2. Clique em "Testar GET" para verificar conexão', 'info');
+      log('   3. Se der erro de CORS, hospede este arquivo online', 'info');
+      log('---', 'info');
+    });
+  </script>
+</body>
+</html>
