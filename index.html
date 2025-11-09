@@ -1,242 +1,132 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Teste da API</title>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      max-width: 800px;
-      margin: 50px auto;
-      padding: 20px;
-      background: #1a1a1a;
-      color: #fff;
-    }
-    .box {
-      background: #2a2a2a;
-      padding: 20px;
-      border-radius: 10px;
-      margin-bottom: 20px;
-    }
-    input, button {
-      padding: 10px;
-      margin: 5px;
-      font-size: 14px;
-      border-radius: 5px;
-      border: 1px solid #444;
-    }
-    button {
-      background: #06b6d4;
-      color: #000;
-      font-weight: bold;
-      cursor: pointer;
-      border: none;
-    }
-    button:hover {
-      background: #0891b2;
-    }
-    #result {
-      background: #000;
-      padding: 15px;
-      border-radius: 5px;
-      margin-top: 10px;
-      white-space: pre-wrap;
-      font-family: monospace;
-      font-size: 12px;
-      max-height: 400px;
-      overflow-y: auto;
-    }
-    .success { color: #10b981; }
-    .error { color: #ef4444; }
-    .info { color: #06b6d4; }
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Sistema de Links - Rastreamento</title>
+<style>
+  body {
+    font-family: "Segoe UI", sans-serif;
+    background: #0f1724;
+    color: #fff;
+    margin: 0;
+    padding: 20px;
+  }
+  h1 { text-align: center; color: #06b6d4; }
+  .card {
+    background: #1e293b;
+    padding: 20px;
+    border-radius: 12px;
+    max-width: 700px;
+    margin: 20px auto;
+    box-shadow: 0 0 10px #0004;
+  }
+  label { display: block; margin-top: 10px; }
+  input {
+    width: 100%; padding: 10px; border: none;
+    border-radius: 8px; margin-top: 5px;
+  }
+  button {
+    margin-top: 15px; padding: 10px 15px;
+    background: #06b6d4; border: none;
+    color: #fff; border-radius: 8px; cursor: pointer;
+  }
+  button:hover { background: #0891b2; }
+  table {
+    width: 100%; border-collapse: collapse;
+    margin-top: 20px; font-size: 14px;
+  }
+  th, td {
+    border-bottom: 1px solid #334155;
+    padding: 8px; text-align: left;
+  }
+  th { background: #1e293b; color: #06b6d4; }
+  a { color: #06b6d4; text-decoration: none; }
+  a:hover { text-decoration: underline; }
+</style>
 </head>
 <body>
-  <h1>🧪 Teste da API do Sistema de Links</h1>
+
+<h1>📊 Sistema de Rastreamento de Links</h1>
+
+<div class="card">
+  <h3>Cadastrar Novo Link</h3>
+  <label>Título do Link:</label>
+  <input id="titulo" placeholder="Ex: Site da PMAM">
+  <label>URL Original:</label>
+  <input id="url" placeholder="https://exemplo.com">
+  <button onclick="cadastrarLink()">Cadastrar</button>
+  <p id="msg"></p>
+</div>
+
+<div class="card">
+  <h3>Links Cadastrados</h3>
+  <table id="tabelaLinks">
+    <thead>
+      <tr>
+        <th>ID</th>
+        <th>Título</th>
+        <th>URL Original</th>
+        <th>Link Curto</th>
+        <th>Cliques</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+</div>
+
+<script>
+const API_URL = "https://script.google.com/macros/s/AKfycbynUK_nQF_ge07WzQ_fowWPdTv3syQn7d5biL74u57rqUI_EbLfcPwTboiS-iwkjQK4/exec";
+
+async function cadastrarLink() {
+  const titulo = document.getElementById("titulo").value.trim();
+  const url = document.getElementById("url").value.trim();
+  const msg = document.getElementById("msg");
   
-  <div class="box">
-    <h3>1️⃣ Configurar URL da API</h3>
-    <input 
-      type="text" 
-      id="apiUrl" 
-      placeholder="Cole a URL do Apps Script aqui"
-      style="width: 100%; max-width: 600px;"
-      value="https://script.google.com/macros/s/AKfycbxMc1mc9EZD-bB1aGJ8XBpAg0czHdM5WYqwuQrk3aWQhOlvam5sSQAMWc_6mq4aBSHbpA/exec"
-    >
-  </div>
+  if (!titulo || !url) {
+    msg.innerText = "⚠️ Preencha todos os campos!";
+    return;
+  }
 
-  <div class="box">
-    <h3>2️⃣ Testar Conexão</h3>
-    <button onclick="testarConexao()">🔌 Testar GET (Listar Links)</button>
-    <button onclick="testarAuth()">🔐 Testar POST (Autenticação)</button>
-  </div>
-
-  <div class="box">
-    <h3>3️⃣ Autenticação</h3>
-    <input type="password" id="senha" placeholder="Senha admin" value="Nanl250612#">
-    <button onclick="fazerLogin()">🔐 Login</button>
-  </div>
-
-  <div class="box">
-    <h3>4️⃣ Adicionar Link (precisa estar logado)</h3>
-    <input type="text" id="titulo" placeholder="Título" style="width: 300px;">
-    <input type="text" id="url" placeholder="URL" style="width: 300px;" value="https://www.google.com">
-    <button onclick="adicionarLink()">➕ Adicionar</button>
-  </div>
-
-  <div class="box">
-    <h3>📊 Resultado:</h3>
-    <div id="result" class="info">Aguardando teste...</div>
-  </div>
-
-  <script>
-    function log(msg, type = 'info') {
-      const result = document.getElementById('result');
-      const timestamp = new Date().toLocaleTimeString();
-      result.innerHTML += `<span class="${type}">[${timestamp}] ${msg}</span>\n`;
-      result.scrollTop = result.scrollHeight;
-    }
-
-    async function testarConexao() {
-      const apiUrl = document.getElementById('apiUrl').value.trim();
-      
-      if (!apiUrl) {
-        log('❌ Por favor, configure a URL da API primeiro!', 'error');
-        return;
-      }
-
-      log('🔄 Testando conexão GET...', 'info');
-      log('📍 URL: ' + apiUrl + '?action=getLinks', 'info');
-
-      try {
-        const response = await fetch(apiUrl + '?action=getLinks');
-        log('✅ Resposta recebida! Status: ' + response.status, 'success');
-        
-        const data = await response.json();
-        log('📦 Dados: ' + JSON.stringify(data, null, 2), 'success');
-        
-        if (data.ok) {
-          log('🎉 API FUNCIONANDO! Total de links: ' + (data.links?.length || 0), 'success');
-        } else {
-          log('⚠️ API respondeu com erro: ' + data.error, 'error');
-        }
-      } catch (error) {
-        log('❌ ERRO: ' + error.message, 'error');
-        log('💡 Possíveis causas:', 'error');
-        log('   1. URL da API incorreta', 'error');
-        log('   2. Apps Script não foi implantado', 'error');
-        log('   3. CORS bloqueado (precisa hospedar online)', 'error');
-        log('   4. Implantação não está como "Qualquer pessoa"', 'error');
-      }
-    }
-
-    async function testarAuth() {
-      const apiUrl = document.getElementById('apiUrl').value.trim();
-      
-      if (!apiUrl) {
-        log('❌ Configure a URL da API primeiro!', 'error');
-        return;
-      }
-
-      log('🔄 Testando requisição POST...', 'info');
-
-      try {
-        const response = await fetch(apiUrl, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ action: 'auth', password: 'teste123' })
-        });
-        
-        log('✅ POST funcionando! Status: ' + response.status, 'success');
-        
-        const data = await response.json();
-        log('📦 Resposta: ' + JSON.stringify(data, null, 2), 'success');
-        
-      } catch (error) {
-        log('❌ ERRO no POST: ' + error.message, 'error');
-      }
-    }
-
-    async function fazerLogin() {
-      const apiUrl = document.getElementById('apiUrl').value.trim();
-      const senha = document.getElementById('senha').value;
-
-      if (!apiUrl || !senha) {
-        log('❌ Preencha URL e senha!', 'error');
-        return;
-      }
-
-      log('🔐 Tentando fazer login...', 'info');
-
-      try {
-        const response = await fetch(apiUrl, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ action: 'auth', password: senha })
-        });
-
-        const data = await response.json();
-        log('📦 Resposta: ' + JSON.stringify(data, null, 2), data.ok ? 'success' : 'error');
-
-        if (data.ok) {
-          log('🎉 LOGIN COM SUCESSO!', 'success');
-        } else {
-          log('❌ Senha incorreta ou erro: ' + data.error, 'error');
-        }
-      } catch (error) {
-        log('❌ ERRO: ' + error.message, 'error');
-      }
-    }
-
-    async function adicionarLink() {
-      const apiUrl = document.getElementById('apiUrl').value.trim();
-      const titulo = document.getElementById('titulo').value.trim();
-      const url = document.getElementById('url').value.trim();
-
-      if (!apiUrl || !titulo || !url) {
-        log('❌ Preencha todos os campos!', 'error');
-        return;
-      }
-
-      log('➕ Adicionando link...', 'info');
-
-      try {
-        const response = await fetch(apiUrl, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ 
-            action: 'addLink',
-            title: titulo,
-            url: url,
-            desc: 'Teste'
-          })
-        });
-
-        const data = await response.json();
-        log('📦 Resposta: ' + JSON.stringify(data, null, 2), data.ok ? 'success' : 'error');
-
-        if (data.ok) {
-          log('🎉 LINK ADICIONADO COM SUCESSO!', 'success');
-          document.getElementById('titulo').value = '';
-          
-          // Atualizar lista
-          setTimeout(testarConexao, 1000);
-        }
-      } catch (error) {
-        log('❌ ERRO: ' + error.message, 'error');
-      }
-    }
-
-    // Auto-teste ao carregar
-    window.addEventListener('load', () => {
-      log('🚀 Sistema de Teste Carregado!', 'success');
-      log('📝 Instruções:', 'info');
-      log('   1. Verifique se a URL da API está correta', 'info');
-      log('   2. Clique em "Testar GET" para verificar conexão', 'info');
-      log('   3. Se der erro de CORS, hospede este arquivo online', 'info');
-      log('---', 'info');
+  msg.innerText = "⏳ Salvando...";
+  try {
+    const res = await fetch(API_URL, {
+      method: "POST",
+      body: JSON.stringify({ action: "addLink", titulo, url })
     });
-  </script>
+    const data = await res.json();
+    msg.innerText = data.message;
+    carregarLinks();
+  } catch (e) {
+    msg.innerText = "❌ Erro ao conectar à planilha.";
+  }
+}
+
+async function carregarLinks() {
+  const tabela = document.querySelector("#tabelaLinks tbody");
+  tabela.innerHTML = "<tr><td colspan='5'>⏳ Carregando...</td></tr>";
+  try {
+    const res = await fetch(API_URL + "?action=getLinks");
+    const data = await res.json();
+    tabela.innerHTML = "";
+    data.forEach(link => {
+      const row = `
+        <tr>
+          <td>${link.ID}</td>
+          <td>${link.Titulo}</td>
+          <td><a href="${link.URL}" target="_blank">Abrir</a></td>
+          <td><a href="${link.Curto}" target="_blank">${link.Curto}</a></td>
+          <td>${link.Contagem}</td>
+        </tr>`;
+      tabela.innerHTML += row;
+    });
+  } catch (e) {
+    tabela.innerHTML = "<tr><td colspan='5'>❌ Erro ao carregar.</td></tr>";
+  }
+}
+
+carregarLinks();
+</script>
+
 </body>
 </html>
